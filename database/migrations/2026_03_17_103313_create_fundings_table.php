@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('fundings', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->text('description');
+            $table->string('image')->nullable();
+            $table->string('education_level');
+            $table->foreignId('university_id')->constrained('universities')->onDelete('cascade');
             $table->timestamps();
         });
     }

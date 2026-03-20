@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('universities', function (Blueprint $table) {
+        Schema::create('consultation_requests', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('subtitle')->nullable();
-            $table->text('content');
-            $table->string('image')->nullable();
-            $table->string('country');
-            $table->string('city');
-            $table->string('logo')->nullable();
+            $table->string('email');
+            $table->string('phone');
+            $table->string('level_of_education');
+            $table->json('programme_of_interest');
+            $table->json('preferred_countries');
+            $table->string('tuition_budget');
             $table->timestamps();
         });
     }
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('universities');
+        Schema::dropIfExists('consultation_requests');
     }
 };

@@ -14,7 +14,7 @@
       <p>Personalized guidance for your international education journey – from application to
         arrival and beyond.</p>
       <div class="hero-buttons">
-        <a class="btn-primary" href="{{ route('journey.index') }}">Start Your Journey</a>
+        <a class="btn-primary" href="{{ route('consultation.index') }}">Start Your Journey</a>
         <a class="btn-secondary" href="#services">Explore Services</a>
       </div>
     </div>

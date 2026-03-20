@@ -11,15 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('universities', function (Blueprint $table) {
+        Schema::create('newsletter_subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('subtitle')->nullable();
-            $table->text('content');
-            $table->string('image')->nullable();
-            $table->string('country');
-            $table->string('city');
-            $table->string('logo')->nullable();
+            $table->string('email')->unique();
+            $table->datetime('subscribed_at')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('universities');
+        Schema::dropIfExists('newsletter_subscriptions');
     }
 };
