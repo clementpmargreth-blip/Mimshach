@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -6,6 +6,93 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-primary: #0a192f;
+    --color-accent: #c6a43f;
+
+    --font-display: "Playfair Display", serif;
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    html {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    html::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0px 1000px var(--color-primary) inset !important;
+        -webkit-text-fill-color: white !important;
+        -webkit-transition: background-color 5000s ease-in-out 0s !important;
+        -webkit-border-image: none !important;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply bg-[--color-accent] text-[--color-primary] px-6 py-3 rounded-full font-semibold transition hover:opacity-90;
+    }
+
+    .btn-secondary {
+        @apply border border-white text-white px-6 py-3 rounded-full transition hover:bg-white hover:text-[--color-primary];
+    }
+
+    .container-custom {
+        @apply max-w-7xl mx-auto px-6;
+    }
+
+    .section {
+        @apply py-20;
+    }
+
+    .backdrop-blur-lg {
+        backdrop-filter: blur(16px);
+    }
+
+    #mobileMenu {
+        transition: transform 0.3s ease-out;
+    }
+
+    /* Better backdrop blur on mobile */
+    .backdrop-blur-xl {
+        backdrop-filter: blur(24px);
+    }
+
+    /* Prevent body scroll when menu is open */
+    body.menu-open {
+        overflow: hidden;
+    }
+
+    .text-primary {
+        color: var(--color-primary);
+    }
+
+    .text-accent {
+        color: var(--color-accent);
+    }
+
+    .bg-primary {
+        background-color: var(--color-primary);
+    }
+
+    .bg-accent {
+        background-color: var(--color-accent);
+    }
 }

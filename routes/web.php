@@ -50,3 +50,7 @@ Route::prefix('consultation')->name('consultation.')->controller(ConsultationCon
 });
 
 Route::post('/newsletter/subscribe', NewsletterController::class)->name('newsletter.subscribe');
+
+if (file_exists(__DIR__ . '/admin.php')) {
+    require __DIR__ . '/admin.php';
+}

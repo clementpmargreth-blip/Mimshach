@@ -6,7 +6,7 @@
     'paginationId' => 'paginationContainer'
 ])
 
-<style>
+{{-- <style>
   /* filter bar */
   .filter-bar {
     background: white;
@@ -107,11 +107,11 @@
     background: #C6A43F;
     color: white;
   }
-</style>
+</style> --}}
 
-<div class="filter-bar">
+<div class="filter-bar relative z-10 -mt-10 rounded-3xl bg-white p-6 shadow-lg">
   <form action="{{ $action }}" method="{{ $method }}">
-    <div class="filter-row">
+    <div class="flex flex-wrap items-center justify-center gap-4">
 
       @foreach ($filters as $filter)
         @php
@@ -126,30 +126,36 @@
         @switch($type)
           {{-- SEARCH INPUT --}}
           @case('search')
-            <div class="search-box">
-              <input name="{{ $name }}" placeholder="{{ $filter['placeholder'] ?? '' }}"
-                type="text" value="{{ $value }}">
+            <div
+              class="flex min-w-[220px] flex-1 items-center rounded-full border border-gray-200 bg-gray-50 px-4">
+              <input class="w-full bg-transparent py-3 text-sm outline-none" name="{{ $name }}"
+                placeholder="{{ $filter['placeholder'] ?? '' }}" type="text"
+                value="{{ $value }}">
             </div>
           @break
 
           {{-- TEXT INPUT --}}
           @case('text')
             <div class="search-box">
-              <input name="{{ $name }}" placeholder="{{ $filter['placeholder'] ?? '' }}"
-                type="text" value="{{ $value }}">
+              <input class="w-full bg-transparent py-3 text-sm outline-none" name="{{ $name }}"
+                placeholder="{{ $filter['placeholder'] ?? '' }}" type="text"
+                value="{{ $value }}">
             </div>
           @break
 
           {{-- DATE INPUT --}}
           @case('date')
             <div class="search-box">
-              <input name="{{ $name }}" type="date" value="{{ $value }}">
+              <input class="w-full bg-transparent py-3 text-sm outline-none" name="{{ $name }}"
+                type="date" value="{{ $value }}">
             </div>
           @break
 
           {{-- SELECT DROPDOWN --}}
           @case('select')
-            <select class="filter-select" name="{{ $name }}">
+            <select
+              class="min-w-[150px] rounded-full border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-[var(--color-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+              name="{{ $name }}">
               @foreach ($filter['options'] as $option)
                 <option @selected(old($name, request($name)) == $option) value="{{ $option }}">
                   {{ $option }}
@@ -160,7 +166,7 @@
 
           {{-- RADIO BUTTONS --}}
           @case('radio')
-            <div class="filter-select">
+            <div class="flex flex-col gap-2">
               <label>{{ $filter['label'] }}</label>
 
               <div class="radio-group">
@@ -177,16 +183,16 @@
 
           {{-- CHECKBOX GROUP --}}
           @case('checkboxes')
-            <div class="filter-checkboxes">
+            <div class="flex flex-wrap items-center gap-4">
               @foreach ($filter['options'] as $option)
                 @php
                   $optValue = $option['value'] ?? $option;
                   $optLabel = $option['label'] ?? $option;
                 @endphp
 
-                <label>
+                <label class="flex items-center gap-2 text-sm font-medium">
                   <input @checked(in_array($optValue, old($name . '[]', (array) request($name)))) name="{{ $name }}[]" type="checkbox"
-                    value="{{ $optValue }}">
+                    value="{{ $optValue }}" class="h-4 w-4 accent-[var(--color-accent)]">
                   {{ $optLabel }}
                 </label>
               @endforeach
@@ -196,28 +202,13 @@
           {{-- FALLBACK (plain input) --}}
 
           @default
-            <div class="search-box">
-              <input name="{{ $name }}" type="text" value="{{ $value }}">
+            <div class="flex min-w-[220px] flex-1 items-center rounded-full border border-gray-200 bg-gray-50 px-4">
+              <input name="{{ $name }}" type="text" value="{{ $value }}" class="w-full bg-transparent py-3 text-sm outline-none">
             </div>
         @endswitch
       @endforeach
 
-      {{-- @php
-        $hasActiveFilters = false;
-        foreach ($filters as $filter) {
-            $name = $filter['name'] ?? null;
-            if ($name && request()->has($name) && !empty(request($name))) {
-                $hasActiveFilters = true;
-                break;
-            }
-        }
-      @endphp --}}
-
-      {{-- @if ($hasActiveFilters)
-        <a class="clear-btn" href="{{ url()->current() }}" id="clearFilters">Clear Filters</a>
-      @endif --}}
-
-      <a class="clear-btn" href="{{ url()->current() }}" id="clearFilters" style="display:none;">
+      <a class="hidden whitespace-nowrap rounded-full border-2 border-[var(--color-accent)] px-5 py-2 text-sm font-semibold text-[var(--color-primary)] transition hover:bg-[var(--color-accent)] hover:text-white" href="{{ url()->current() }}" id="clearFilters" style="display:none;">
         Clear Filters
       </a>
     </div>

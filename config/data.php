@@ -44,14 +44,14 @@ return [
             'icon' => 'fas fa-plane',
             'title' => 'Travel Assistance Services',
             'description' => 'Safe and affordable travel options for students and professionals.',
-            'link' => 'contact',
+            'link' => 'contact.index',
             'link_text' => 'Learn More',
         ],
         [
             'icon' => 'fas fa-hand-holding-heart',
             'title' => 'Pre-Arrival Support',
             'description' => 'Logistical help and local insights for a smooth transition.',
-            'link' => 'consultation',
+            'link' => 'consultation.index',
             'link_text' => 'Learn More',
         ],
     ],
@@ -77,7 +77,7 @@ return [
             'quote' => 'Mimshach Education Centre guided me through every step of my journey abroad. Their team was incredibly supportive and dedicated to helping me succeed.',
             'author' => 'Sarah Johnson',
             'position' => 'MSc, University of Manchester',
-            'image' => 'https://images.unsplash.com/photo-1494790108777-8f3c9a27a36f?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80',
+            'image' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80',
         ],
         [
             'quote' => 'The support I received from MEC was invaluable. They helped me secure a scholarship and navigate the complexities of studying internationally.',
@@ -88,22 +88,22 @@ return [
     ],
     'benefits' => [
         [
-            'icon' => 'fa-user-check',
+            'icon' => 'fas fa-user-check',
             'title' => 'Personalized Matching',
             'description' => 'We don\'t believe in one-size-fits-all.',
         ],
         [
-            'icon' => 'fa-chart-line',
+            'icon' => 'fas fa-chart-line',
             'title' => '95% Visa Success',
             'description' => 'Our experts know the process inside out.',
         ],
         [
-            'icon' => 'fa-trophy',
+            'icon' => 'fas fa-trophy',
             'title' => '$2M+ Scholarships',
             'description' => 'We\'ve helped secure millions in aid.',
         ],
         [
-            'icon' => 'fa-users',
+            'icon' => 'fas fa-users',
             'title' => 'Global Alumni Network',
             'description' => 'Join 5000+ alumni worldwide.',
         ],
