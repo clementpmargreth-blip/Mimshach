@@ -30,7 +30,7 @@ class EventController extends Controller
         $query = Event::query();
 
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%'.$request->search.'%');
+            $query->where('title', 'like', '%' . $request->search . '%');
         }
 
         if ($request->city && $request->city !== 'All Cities') {
@@ -75,6 +75,5 @@ class EventController extends Controller
         return response()->json([
             'message' => 'You have successfully registered for the event!',
         ]);
-
     }
 }

@@ -31,6 +31,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
       'funding' => FundingController::class,
       'blog' => BlogController::class,
     ]);
+
+    Route::get('events/{event}/registrations', [EventController::class, 'registrations'])
+      ->name('events.registrations');
+
     // Consultations
     Route::get('/consultations', [ConsultationController::class, 'index'])->name('consultations.index');
 

@@ -21,90 +21,51 @@
       </button>
     </div>
 
-    <!-- Filters Section -->
-    <div class="rounded-2xl bg-white p-4 shadow-lg dark:bg-gray-800">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div class="relative">
-          <svg class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="none"
-            stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round"
-              stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-          <input
-            class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            id="search" placeholder="Search admissions..." type="text">
-        </div>
-        <select
-          class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          id="programFilter">
-          <option value="">All Programs</option>
-          @foreach ($admissions->pluck('program')->unique() as $program)
-            <option value="{{ $program }}">{{ $program }}</option>
-          @endforeach
-        </select>
-        <select
-          class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          id="countryFilter">
-          <option value="">All Countries</option>
-          @foreach ($admissions->pluck('country')->unique() as $country)
-            <option value="{{ $country }}">{{ $country }}</option>
-          @endforeach
-        </select>
-        <select
-          class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          id="universityFilter">
-          <option value="">All Universities</option>
-          @foreach ($admissions->pluck('university')->unique() as $university)
-            <option value="{{ $university->id }}">{{ $university->name }}</option>
-          @endforeach
-        </select>
-      </div>
-    </div>
+    <x-filter-bar :$filters contentId="admissionsList" paginationId="paginationContainer" />
 
-    <!-- Admissions Table -->
-    <div class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-gray-800">
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead
-            class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-            <tr>
-              <th
-                class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
-                Image</th>
-              <th
-                class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
-                Program</th>
-              <th
-                class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
-                University</th>
-              <th
-                class="hidden px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:table-cell sm:px-6 dark:text-gray-300">
-                Country</th>
-              <th
-                class="hidden px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 lg:table-cell dark:text-gray-300">
-                Year</th>
-              <th
-                class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
-                Deadline</th>
-              <th
-                class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
-                Status</th>
-              <th
-                class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
-                Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
-            id="admissionsTableBody">
-            @include('components.admin.admissions.table', ['admissions' => $admissions])
-          </tbody>
-        </table>
+      <div class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-gray-800">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead
+              class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+              <tr>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  Image</th>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  Program</th>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  University</th>
+                <th
+                  class="hidden px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:table-cell sm:px-6 dark:text-gray-300">
+                  Country</th>
+                <th
+                  class="hidden px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 lg:table-cell dark:text-gray-300">
+                  Year</th>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  Deadline</th>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  Status</th>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
+              id="admissionsList">
+              <x-admin.admissions.table :$admissions />
+            </tbody>
+          </table>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-4 sm:px-6 dark:border-gray-700"
+          id="paginationContainer">
+          {{ $admissions->links() }}
+        </div>
       </div>
-      <div class="border-t border-gray-200 px-4 py-4 sm:px-6 dark:border-gray-700"
-        id="paginationLinks">
-        {{ $admissions->links() }}
-      </div>
-    </div>
   </div>
 
   <!-- Create/Edit Modal -->

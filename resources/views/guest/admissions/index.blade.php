@@ -6,7 +6,7 @@
   <div class="mx-auto max-w-[1200px] px-4">
 
     <!-- Filter Bar -->
-    <x-filter-bar :$filters contentId="blogList" paginationId="paginationContainer" />
+    <x-filter-bar :$filters contentId="blogList" paginationId="paginationContainer" classes='-mt-10' />
 
     <!-- Blog List -->
     <div class="mt-12 space-y-6" id="blogList">

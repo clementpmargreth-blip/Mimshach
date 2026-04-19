@@ -186,7 +186,7 @@
     title="Partner Universities" />
 
   <div class="container">
-    <x-filter-bar :$filters contentId="uniGrid" paginationId="paginationContainer" />
+    <x-filter-bar :$filters contentId="uniGrid" paginationId="paginationContainer" classes='-mt-10' />
 
     <div class="uni-grid" id="uniGrid">
       @if ($universities->isEmpty())

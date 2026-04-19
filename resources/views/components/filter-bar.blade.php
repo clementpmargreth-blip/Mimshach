@@ -3,113 +3,12 @@
     'action' => url()->current(),
     'method' => 'GET',
     'contentId' => 'blogList',
-    'paginationId' => 'paginationContainer'
+    'paginationId' => 'paginationContainer',
+    'classes' => ''
 ])
 
-{{-- <style>
-  /* filter bar */
-  .filter-bar {
-    background: white;
-    border-radius: 30px;
-    padding: 25px 30px;
-    margin-top: -40px;
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-    position: relative;
-    z-index: 10;
-  }
-
-  .filter-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .search-box {
-    flex: 2;
-    min-width: 240px;
-    display: flex;
-    align-items: center;
-    background: #F9F7F5;
-    border-radius: 50px;
-    padding: 0 20px;
-    border: 1px solid #e0e0e0;
-  }
-
-  .search-box i {
-    color: #C6A43F;
-  }
-
-  .search-box input {
-    width: 100%;
-    padding: 14px 10px;
-    border: none;
-    background: transparent;
-    font-size: 16px;
-    outline: none;
-  }
-
-  .filter-checkboxes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: center;
-    flex: 3;
-  }
-
-  .filter-checkboxes label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-    cursor: pointer;
-  }
-
-  .filter-checkboxes input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: #C6A43F;
-  }
-
-  .filter-select {
-    flex: 1;
-    min-width: 150px;
-    padding: 12px 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 50px;
-    font-family: 'Inter', sans-serif;
-    background: #F9F7F5;
-    color: #0A192F;
-    cursor: pointer;
-    font-size: 15px;
-  }
-
-  .filter-select:focus {
-    outline: none;
-    border-color: #C6A43F;
-    box-shadow: 0 0 0 2px rgba(198, 164, 63, 0.2);
-  }
-
-  .clear-btn {
-    background: transparent;
-    border: 2px solid #C6A43F;
-    color: #0A192F;
-    padding: 12px 28px;
-    border-radius: 50px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-    white-space: nowrap;
-    text-decoration: none;
-  }
-
-  .clear-btn:hover {
-    background: #C6A43F;
-    color: white;
-  }
-</style> --}}
-
-<div class="filter-bar relative z-10 -mt-10 rounded-3xl bg-white p-6 shadow-lg">
+<div
+  class="filter-bar @if ($classes) {{ $classes }} @endif relative z-10 w-full rounded-2xl bg-white p-3 shadow-lg dark:bg-gray-800">
   <form action="{{ $action }}" method="{{ $method }}">
     <div class="flex flex-wrap items-center justify-center gap-4">
 
@@ -127,37 +26,48 @@
           {{-- SEARCH INPUT --}}
           @case('search')
             <div
-              class="flex min-w-[220px] flex-1 items-center rounded-full border border-gray-200 bg-gray-50 px-4">
-              <input class="w-full bg-transparent py-3 text-sm outline-none" name="{{ $name }}"
-                placeholder="{{ $filter['placeholder'] ?? '' }}" type="text"
+              class="flex min-w-[220px] flex-1 items-center rounded-lg bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <input
+                class="focus:border-accent focus:ring-accent/20 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                name="{{ $name }}" placeholder="{{ $filter['placeholder'] ?? '' }}" type="search"
                 value="{{ $value }}">
             </div>
           @break
 
           {{-- TEXT INPUT --}}
           @case('text')
-            <div class="search-box">
-              <input class="w-full bg-transparent py-3 text-sm outline-none" name="{{ $name }}"
-                placeholder="{{ $filter['placeholder'] ?? '' }}" type="text"
-                value="{{ $value }}">
+            <div
+              class="flex min-w-[220px] flex-1 items-center rounded-lg bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <input
+                class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                name="{{ $name }}" placeholder="{{ $filter['placeholder'] ?? '' }}"
+                type="text" value="{{ $value }}">
             </div>
           @break
 
           {{-- DATE INPUT --}}
           @case('date')
-            <div class="search-box">
-              <input class="w-full bg-transparent py-3 text-sm outline-none" name="{{ $name }}"
-                type="date" value="{{ $value }}">
+            <div
+              class="flex min-w-[220px] flex-1 items-center rounded-lg bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <input
+                class="datepicker-input focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 bg-red-500 px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                name="{{ $name }}" placeholder="{{ $filter['placeholder'] ?? 'Select date' }}"
+                type="text" value="{{ $value }}">
             </div>
           @break
 
           {{-- SELECT DROPDOWN --}}
           @case('select')
             <select
-              class="min-w-[150px] rounded-full border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-[var(--color-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+              class="focus:border-accent focus:ring-accent/20 w-48 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               name="{{ $name }}">
               @foreach ($filter['options'] as $option)
-                <option @selected(old($name, request($name)) == $option) value="{{ $option }}">
+                @php
+                  // For "All Cities" or similar, use empty value
+                  $optionValue =
+                      str_starts_with($option, 'All ') || $option === 'All Cities' ? '' : $option;
+                @endphp
+                <option @selected(old($name, request($name)) == $option) class='text-sm' value="{{ $optionValue }}">
                   {{ $option }}
                 </option>
               @endforeach
@@ -171,8 +81,10 @@
 
               <div class="radio-group">
                 @foreach ($filter['options'] as $option)
-                  <label>
-                    <input @checked(old($name, request($name)) == ($option['value'] ?? $option)) name="{{ $name }}" type="radio"
+                  <label class='text-gray-900 dark:text-white'>
+                    <input @checked(old($name, request($name)) == ($option['value'] ?? $option))
+                      class='focus:border-primary focus:ring-primary/20 w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                      name="{{ $name }}" type="radio"
                       value="{{ $option['value'] ?? $option }}">
                     {{ $option['label'] ?? $option }}
                   </label>
@@ -190,9 +102,23 @@
                   $optLabel = $option['label'] ?? $option;
                 @endphp
 
-                <label class="flex items-center gap-2 text-sm font-medium">
-                  <input @checked(in_array($optValue, old($name . '[]', (array) request($name)))) name="{{ $name }}[]" type="checkbox"
-                    value="{{ $optValue }}" class="h-4 w-4 accent-[var(--color-accent)]">
+                <label
+                  class="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+
+                  <input @checked(in_array($optValue, old($name . '[]', (array) request($name)))) class="peer hidden" name="{{ $name }}[]"
+                    type="checkbox" value="{{ $optValue }}">
+
+                  <div
+                    class="peer-checked:bg-accent peer-checked:border-primary flex h-4 w-4 items-center justify-center rounded border border-gray-400 bg-gray-700">
+
+                    <svg class="hidden h-3 w-3 text-white peer-checked:block" fill="none"
+                      stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="3" />
+                    </svg>
+
+                  </div>
+
                   {{ $optLabel }}
                 </label>
               @endforeach
@@ -202,13 +128,17 @@
           {{-- FALLBACK (plain input) --}}
 
           @default
-            <div class="flex min-w-[220px] flex-1 items-center rounded-full border border-gray-200 bg-gray-50 px-4">
-              <input name="{{ $name }}" type="text" value="{{ $value }}" class="w-full bg-transparent py-3 text-sm outline-none">
+            <div
+              class="flex min-w-[220px] flex-1 items-center rounded-lg bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+              <input
+                class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                name="{{ $name }}" type="text" value="{{ $value }}">
             </div>
         @endswitch
       @endforeach
 
-      <a class="hidden whitespace-nowrap rounded-full border-2 border-[var(--color-accent)] px-5 py-2 text-sm font-semibold text-[var(--color-primary)] transition hover:bg-[var(--color-accent)] hover:text-white" href="{{ url()->current() }}" id="clearFilters" style="display:none;">
+      <a class="border-accent hover:bg-accent hidden whitespace-nowrap rounded-full border-2 px-5 py-2 text-sm font-semibold text-white transition hover:text-white"
+        href="{{ url()->current() }}" id="clearFilters" style="display:none;">
         Clear Filters
       </a>
     </div>

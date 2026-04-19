@@ -8,6 +8,10 @@
     <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
     <meta content="{{ csrf_token() }}" name="csrf-token">
     <title>{{ $pageTitle }}</title>
+    <!-- Add to your layout head section -->
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -37,14 +41,190 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      /* Card hover effects */
-      /* .stat-card {
-        transition: all 0.3s ease;
+      /* Base calendar */
+      .flatpickr-calendar {
+        background: #1f2937 !important;
+        border: 1px solid #374151 !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 0.5rem !important;
       }
 
-      .stat-card:hover {
-        transform: translateY(-4px);
-      } */
+      /* Calendar arrow buttons */
+      .flatpickr-calendar .flatpickr-prev-month,
+      .flatpickr-calendar .flatpickr-next-month {
+        fill: #9ca3af !important;
+        color: #9ca3af !important;
+      }
+
+      .flatpickr-calendar .flatpickr-prev-month:hover,
+      .flatpickr-calendar .flatpickr-next-month:hover {
+        fill: #C6A43F !important;
+        color: #C6A43F !important;
+      }
+
+      .flatpickr-calendar .flatpickr-prev-month:hover svg,
+      .flatpickr-calendar .flatpickr-next-month:hover svg {
+        fill: #C6A43F !important;
+      }
+
+      /* Months navigation bar */
+      .flatpickr-calendar .flatpickr-months {
+        background: #111827 !important;
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+      }
+
+      .flatpickr-calendar .flatpickr-month {
+        color: #f3f4f6 !important;
+        background: #111827 !important;
+      }
+
+      /* Current month display */
+      .flatpickr-calendar .flatpickr-current-month {
+        color: #f3f4f6 !important;
+        padding-top: 10px !important;
+      }
+
+      .flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months {
+        background: #374151 !important;
+        color: #f3f4f6 !important;
+        border: 1px solid #4b5563 !important;
+        border-radius: 0.25rem !important;
+      }
+
+      .flatpickr-calendar .flatpickr-current-month input.cur-year {
+        background: #374151 !important;
+        color: #f3f4f6 !important;
+        border: 1px solid #4b5563 !important;
+        border-radius: 0.25rem !important;
+      }
+
+      .flatpickr-calendar .flatpickr-current-month input.cur-year:focus {
+        outline: none !important;
+        border-color: #C6A43F !important;
+      }
+
+      /* Weekday headers */
+      .flatpickr-calendar .flatpickr-weekdays {
+        background: #1f2937 !important;
+      }
+
+      .flatpickr-calendar .flatpickr-weekday {
+        color: #9ca3af !important;
+      }
+
+      /* Individual days */
+      .flatpickr-calendar .flatpickr-day {
+        color: #e5e7eb !important;
+        background: #1f2937 !important;
+        /* border: 1px solid #374151 !important; */
+        border-radius: 50% !important;
+      }
+
+      .flatpickr-calendar .flatpickr-day:hover {
+        background: #C6A43F !important;
+        color: #ffffff !important;
+        border-color: #C6A43F !important;
+      }
+
+      /* Selected day - YOUR ACCENT COLOR */
+      .flatpickr-calendar .flatpickr-day.selected,
+      .flatpickr-calendar .flatpickr-day.startRange,
+      .flatpickr-calendar .flatpickr-day.endRange,
+      .flatpickr-calendar .flatpickr-day.selected.inRange,
+      .flatpickr-calendar .flatpickr-day.startRange.inRange,
+      .flatpickr-calendar .flatpickr-day.endRange.inRange,
+      .flatpickr-calendar .flatpickr-day.selected:focus,
+      .flatpickr-calendar .flatpickr-day.startRange:focus,
+      .flatpickr-calendar .flatpickr-day.endRange:focus,
+      .flatpickr-calendar .flatpickr-day.selected:hover,
+      .flatpickr-calendar .flatpickr-day.startRange:hover,
+      .flatpickr-calendar .flatpickr-day.endRange:hover {
+        background: #C6A43F !important;
+        border-color: #C6A43F !important;
+        color: #ffffff !important;
+      }
+
+      /* Today's date */
+      .flatpickr-calendar .flatpickr-day.today {
+        border-color: #C6A43F !important;
+        background: #1f2937 !important;
+      }
+
+      .flatpickr-calendar .flatpickr-day.today:hover {
+        background: #C6A43F !important;
+        color: #0A192F !important;
+        border-color: #C6A43F !important;
+      }
+
+      .flatpickr-calendar .flatpickr-day.today.selected {
+        background: #C6A43F !important;
+        color: #0A192F !important;
+      }
+
+      /* Previous and next month days */
+      .flatpickr-calendar .flatpickr-day.prevMonthDay,
+      .flatpickr-calendar .flatpickr-day.nextMonthDay {
+        color: #6b7280 !important;
+        background: #1f2937 !important;
+      }
+
+      /* Disabled days */
+      .flatpickr-calendar .flatpickr-day.disabled,
+      .flatpickr-calendar .flatpickr-day.disabled:hover {
+        color: #4b5563 !important;
+        background: #1f2937 !important;
+        border-color: #374151 !important;
+      }
+
+      /* Range selection */
+      .flatpickr-calendar .flatpickr-day.inRange,
+      .flatpickr-calendar .flatpickr-day.prevMonthDay.inRange,
+      .flatpickr-calendar .flatpickr-day.nextMonthDay.inRange,
+      .flatpickr-calendar .flatpickr-day.today.inRange,
+      .flatpickr-calendar .flatpickr-day.prevMonthDay.today.inRange,
+      .flatpickr-calendar .flatpickr-day.nextMonthDay.today.inRange {
+        background: #374151 !important;
+        border-color: #374151 !important;
+      }
+
+      /* Time picker (if used) */
+      .flatpickr-calendar .flatpickr-time {
+        border-color: #374151 !important;
+        background: #1f2937 !important;
+        border-top: 1px solid #374151 !important;
+      }
+
+      .flatpickr-calendar .flatpickr-time input,
+      .flatpickr-calendar .flatpickr-time .flatpickr-am-pm {
+        color: #f3f4f6 !important;
+        background: #1f2937 !important;
+      }
+
+      .flatpickr-calendar .flatpickr-time input:hover,
+      .flatpickr-calendar .flatpickr-time .flatpickr-am-pm:hover {
+        background: #374151 !important;
+      }
+
+      .flatpickr-calendar .flatpickr-time .flatpickr-time-separator {
+        color: #f3f4f6 !important;
+      }
+
+      /* Arrow buttons SVG */
+      .flatpickr-calendar .flatpickr-prev-month svg,
+      .flatpickr-calendar .flatpickr-next-month svg {
+        fill: #9ca3af !important;
+      }
+
+      .flatpickr-calendar .flatpickr-prev-month:hover svg,
+      .flatpickr-calendar .flatpickr-next-month:hover svg {
+        fill: #C6A43F !important;
+      }
+
+      /* Ensure dropdown menu has proper styling */
+      .flatpickr-calendar .flatpickr-monthDropdown-months option {
+        background: #374151 !important;
+        color: #f3f4f6 !important;
+      }
 
       /* Chart container */
       .chart-container {
@@ -103,6 +283,8 @@
         <main class="flex-1 overflow-y-auto p-4 sm:p-6">
           {{ $slot }}
         </main>
+
+        <div class="z-2000 fixed right-6 top-6 flex flex-col gap-3" id="toastContainer"></div>
       </div>
     </div>
 
@@ -164,6 +346,46 @@
             closeSidebar();
           }
         }, 250);
+      });
+
+      function showToast(type = 'success', message = '') {
+        const container = document.getElementById('toastContainer');
+
+        const toast = document.createElement('div');
+
+        toast.className = `
+          flex items-center gap-3 rounded-xl px-4 py-3 text-sm shadow-lg backdrop-blur-xl border
+          transition-all duration-300 opacity-0 translate-y-[-10px]
+          ${type === 'success' 
+            ? 'bg-green-500/20 border-green-400/30 text-green-800' 
+            : 'bg-red-500/20 border-red-400/30 text-red-800 dark:text-red-200'}
+        `;
+
+        toast.innerHTML = `
+          <span>${message}</span>
+        `;
+
+        container.appendChild(toast);
+
+        // animate in
+        requestAnimationFrame(() => {
+          toast.classList.remove('opacity-0', 'translate-y-[-10px]');
+        });
+
+        // remove after 3s
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-[-10px]');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      // Initialize all date pickers
+      document.querySelectorAll('.datepicker-input').forEach(input => {
+        flatpickr(input, {
+          dateFormat: "Y-m-d",
+          allowInput: true,
+          placeholder: input.placeholder
+        });
       });
 
       // Initialize Charts with sample data (replace with your actual data)
@@ -291,6 +513,7 @@
         }
       });
     </script>
+    {{ $scripts ?? '' }}
   </body>
 
 </html>

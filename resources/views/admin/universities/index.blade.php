@@ -1,14 +1,19 @@
-<x-admin.layout header="Universities Management">
+<x-admin-layout pageTitle="Universities Management">
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
+    <!-- Header Section -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">Universities</h2>
-        <p class="mt-1 text-gray-600">Manage partner universities and institutions</p>
+        <h2
+          class="from-primary to-accent bg-gradient-to-r bg-clip-text text-2xl font-bold text-transparent">
+          Universities
+        </h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage partner universities and
+          institutions</p>
       </div>
       <button
-        class="flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700"
+        class="from-primary to-accent focus:ring-primary inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2"
         onclick="openCreateModal()">
-        <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
           </path>
         </svg>
@@ -16,64 +21,68 @@
       </button>
     </div>
 
-    <!-- Universities Grid -->
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      @foreach ($universities as $university)
-        <div class="overflow-hidden rounded-lg bg-white shadow-md">
-          @if ($university->image)
-            <img alt="{{ $university->name }}" class="h-48 w-full object-cover"
-              src="{{ Storage::url($university->image) }}">
-          @else
-            <div class="flex h-48 w-full items-center justify-center bg-gray-200">
-              <svg class="h-16 w-16 text-gray-400" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg>
-            </div>
-          @endif
-          <div class="p-4">
-            <div class="flex items-start justify-between">
-              <div>
-                <h3 class="text-lg font-semibold text-gray-800">{{ $university->name }}</h3>
-                <p class="text-sm text-gray-600">{{ $university->city }}, {{ $university->country }}
-                </p>
-              </div>
-              @if ($university->logo)
-                <img alt="Logo" class="h-12 w-12 object-contain"
-                  src="{{ Storage::url($university->logo) }}">
-              @endif
-            </div>
-            <p class="mt-2 line-clamp-2 text-sm text-gray-600">{{ $university->subtitle ?? '' }}</p>
-            <div class="mt-4 flex justify-end space-x-2">
-              <button class="text-sm text-indigo-600 hover:text-indigo-900"
-                onclick="editUniversity({{ $university->id }})">Edit</button>
-              <form action="{{ route('admin.universities.destroy', $university) }}" class="inline"
-                method="POST" onsubmit="return confirm('Delete this university?')">
-                @csrf
-                @method('DELETE')
-                <button class="text-sm text-red-600 hover:text-red-900"
-                  type="submit">Delete</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      @endforeach
-    </div>
+    <!-- Filter Component -->
+    <x-filter-bar :filters="$filters" :useAjax="true" contentId="universitiesList"
+      paginationId="paginationContainer" />
 
-    <div class="mt-6">
-      {{ $universities->links() }}
-    </div>
+    
+      <div class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-gray-800">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead
+              class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+              <tr>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  Image/Logo
+                </th>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  University Name
+                </th>
+                <th
+                  class="hidden px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:table-cell sm:px-6 dark:text-gray-300">
+                  Country
+                </th>
+                <th
+                  class="hidden px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:table-cell sm:px-6 dark:text-gray-300">
+                  City
+                </th>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  Status
+                </th>
+                <th
+                  class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
+              id="universitiesList">
+              <x-admin.universities.table :$universities />
+            </tbody>
+          </table>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-4 sm:px-6 dark:border-gray-700"
+          id="paginationContainer">
+          {{ $universities->links() }}
+        </div>
+      </div>
   </div>
 
   <!-- Create/Edit Modal -->
-  <div class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto bg-gray-600 bg-opacity-50"
+  <div class="fixed inset-0 z-50 hidden h-full w-full overflow-y-auto bg-black/50 backdrop-blur-sm"
     id="universityModal">
-    <div class="relative top-10 mx-auto w-full max-w-2xl rounded-md border bg-white p-5 shadow-lg">
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900" id="modalTitle">Add University</h3>
-        <button class="text-gray-400 hover:text-gray-600" onclick="closeModal()">
+    <div
+      class="relative mx-auto my-10 w-full max-w-2xl rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
+      <div
+        class="flex items-center justify-between border-b border-gray-200 p-6 dark:border-gray-700">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white" id="modalTitle">Add University
+        </h3>
+        <button
+          class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700"
+          onclick="closeModal()">
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"
               stroke-width="2"></path>
@@ -85,67 +94,81 @@
         <input id="method" name="_method" type="hidden" value="POST">
         <input id="universityId" name="university_id" type="hidden">
 
-        <div class="space-y-4">
+        <div class="max-h-[60vh] space-y-4 overflow-y-auto p-6">
           <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700">University Name</label>
+            <label
+              class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">University
+              Name *</label>
             <input
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               id="name" name="name" required type="text">
           </div>
 
           <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700">Subtitle</label>
+            <label
+              class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Subtitle</label>
             <input
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               id="subtitle" name="subtitle" type="text">
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label class="mb-2 block text-sm font-medium text-gray-700">Country</label>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Country
+                *</label>
               <input
-                class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 id="country" name="country" required type="text">
             </div>
             <div>
-              <label class="mb-2 block text-sm font-medium text-gray-700">City</label>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">City
+                *</label>
               <input
-                class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 id="city" name="city" required type="text">
             </div>
           </div>
 
           <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700">Content</label>
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Content
+              *</label>
             <textarea
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               id="content" name="content" required rows="5"></textarea>
           </div>
 
           <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700">Featured Image</label>
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Featured
+              Image</label>
             <input accept="image/*"
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               id="image" name="image" type="file">
             <div class="mt-2 hidden" id="currentImage">
-              <img alt="Current image" class="h-32 w-32 rounded object-cover"
+              <img alt="Current image" class="h-24 w-24 rounded-lg object-cover"
                 id="currentImagePreview" src="">
             </div>
           </div>
 
           <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700">Logo</label>
+            <label
+              class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Logo</label>
             <input accept="image/*"
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              class="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               id="logo" name="logo" type="file">
+            <div class="mt-2 hidden" id="currentLogo">
+              <img alt="Current logo" class="h-24 w-24 rounded-lg object-contain"
+                id="currentLogoPreview" src="">
+            </div>
           </div>
+        </div>
 
-          <div class="flex justify-end space-x-3 pt-4">
-            <button class="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
-              onclick="closeModal()" type="button">Cancel</button>
-            <button class="rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-              type="submit">Save</button>
-          </div>
+        <div class="flex justify-end space-x-3 border-t border-gray-200 p-6 dark:border-gray-700">
+          <button
+            class="rounded-lg bg-gray-200 px-4 py-2 font-medium text-gray-700 transition hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            onclick="closeModal()" type="button">Cancel</button>
+          <button
+            class="from-primary to-accent rounded-lg bg-gradient-to-r px-4 py-2 font-medium text-white transition hover:shadow-lg"
+            type="submit">Save University</button>
         </div>
       </form>
     </div>
@@ -159,6 +182,7 @@
         document.getElementById('universityForm').action = "{{ route('admin.universities.store') }}";
         document.getElementById('universityForm').reset();
         document.getElementById('currentImage').classList.add('hidden');
+        document.getElementById('currentLogo').classList.add('hidden');
         document.getElementById('universityModal').classList.remove('hidden');
       }
 
@@ -171,7 +195,7 @@
             document.getElementById('universityForm').action = `/admin/universities/${id}`;
             document.getElementById('universityId').value = id;
             document.getElementById('name').value = data.name;
-            document.getElementById('subtitle').value = data.subtitle;
+            document.getElementById('subtitle').value = data.subtitle || '';
             document.getElementById('country').value = data.country;
             document.getElementById('city').value = data.city;
             document.getElementById('content').value = data.content;
@@ -179,10 +203,20 @@
             if (data.image) {
               document.getElementById('currentImagePreview').src = `/storage/${data.image}`;
               document.getElementById('currentImage').classList.remove('hidden');
+            } else {
+              document.getElementById('currentImage').classList.add('hidden');
+            }
+
+            if (data.logo) {
+              document.getElementById('currentLogoPreview').src = `/storage/${data.logo}`;
+              document.getElementById('currentLogo').classList.remove('hidden');
+            } else {
+              document.getElementById('currentLogo').classList.add('hidden');
             }
 
             document.getElementById('universityModal').classList.remove('hidden');
-          });
+          })
+          .catch(error => console.error('Error:', error));
       }
 
       function closeModal() {
@@ -190,4 +224,4 @@
       }
     </script>
   </x-slot:scripts>
-</x-admin.layout>
+</x-admin-layout>

@@ -132,7 +132,7 @@
     title="Upcoming Events" />
 
   <div class="container">
-    <x-filter-bar :$filters contentId="eventsList" paginationId="paginationContainer" />
+    <x-filter-bar :$filters contentId="eventsList" paginationId="paginationContainer" classes='-mt-10' />
 
     <div class="events-list" id="eventsList">
       @if ($events->isEmpty())
