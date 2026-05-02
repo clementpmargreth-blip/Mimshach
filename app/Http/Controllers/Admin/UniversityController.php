@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Funding;
 use App\Models\University;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class UniversityController extends Controller
@@ -14,7 +14,7 @@ class UniversityController extends Controller
     public function index(Request $request)
     {
         // Get unique values for filters
-        $countries = ['All Countries', ...University::distinct()->pluck('country')->filter()->sort()->values()->toArray()];
+        $countries = ['All Cities', ...University::distinct()->pluck('country')->filter()->sort()->values()->toArray()];
         $cities = ['All Cities', ...University::distinct()->pluck('city')->filter()->sort()->values()->toArray()];
 
         // Build filters array
@@ -29,147 +29,251 @@ class UniversityController extends Controller
                 'name' => 'country',
                 'label' => 'Country',
                 'options' => $countries,
-                'empty_option' => 'All Countries'
             ],
             [
                 'type' => 'select',
                 'name' => 'city',
                 'label' => 'City',
                 'options' => $cities,
-                'empty_option' => 'All Cities'
             ],
         ];
 
         $query = University::query();
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->country && $request->country !== 'All Countries') {
-            $query->where('country', $request->country);
-        }
-
-        if ($request->city && $request->city !== 'All Cities') {
-            $query->where('city', $request->city);
-        }
-
-        $universities = $query->latest()->paginate(6);
-
-        return view('admin.universities.index', compact('universities', 'filters'));
-    }
-
-    /**
-     * Get filtered universities with all filter logic
-     */
-    private function getFilteredUniversities(Request $request)
-    {
-        $query = University::query();
-
-        // Apply search filter
-        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
                     ->orWhere('subtitle', 'like', '%' . $search . '%')
-                    ->orWhere('country', 'like', '%' . $search . '%')
-                    ->orWhere('city', 'like', '%' . $search . '%');
+                    ->orWhere('content', 'like', '%' . $search . '%');
             });
         }
 
-        // Apply country filter
-        if ($request->filled('country') && $request->country !== 'All Countries') {
+        if ($request->filled('country') && $request->country !== 'All Cities') {
             $query->where('country', $request->country);
         }
 
-        // Apply city filter
         if ($request->filled('city') && $request->city !== 'All Cities') {
             $query->where('city', $request->city);
         }
 
-        return $query->latest()->paginate(6);
-    }
+        $universities = $query->orderBy('id', 'desc')->paginate(6);
 
-    public function create()
-    {
-        //
+        return view('admin.universities.index', compact('universities', 'filters'));
     }
-
+    
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'subtitle' => 'nullable|string',
-            'country' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'subtitle' => 'nullable|string',
+                'country' => 'required|string|max:255',
+                'city' => 'required|string|max:255',
+                'content' => 'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
 
-        $validated['slug'] = Str::slug($validated['name']);
+            $validated['slug'] = Str::slug($validated['name']);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('universities', 'public');
+            // Handle image upload
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                try {
+                    $imagePath = $request->file('image')->store('universities', 'public');
+                    $validated['image'] = $imagePath;
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload image: ' . $e->getMessage()
+                    ], 500);
+                }
+            } else {
+                unset($validated['image']);
+            }
+
+            // Handle logo upload
+            if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
+                try {
+                    $logoPath = $request->file('logo')->store('universities/logos', 'public');
+                    $validated['logo'] = $logoPath;
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload logo: ' . $e->getMessage()
+                    ], 500);
+                }
+            } else {
+                unset($validated['logo']);
+            }
+
+            $university = University::create($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'University created successfully',
+                'university' => $university
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . json_encode($e->errors())
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('University store error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating university: ' . $e->getMessage()
+            ], 500);
         }
-
-        if ($request->hasFile('logo')) {
-            $validated['logo'] = $request->file('logo')->store('universities/logos', 'public');
-        }
-
-        University::create($validated);
-
-        return redirect()->route('admin.universities.index')->with('success', 'University created successfully');
     }
 
-    public function edit(University $university)
+    public function edit($id)
     {
-        return response()->json($university);
+        try {
+            $university = University::findOrFail($id);
+
+            // Add full URLs for images
+            $universityData = $university->toArray();
+            $universityData['image_url'] = $university->image ? Storage::url($university->image) : null;
+            $universityData['logo_url'] = $university->logo ? Storage::url($university->logo) : null;
+
+            return response()->json([
+                'success' => true,
+                'university' => $universityData
+            ]);
+        } catch (\Exception $e) {
+            Log::error('University edit error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'University not found'
+            ], 404);
+        }
     }
 
-    public function update(Request $request, University $university)
+    public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'subtitle' => 'nullable|string',
-            'country' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        try {
+            $university = University::findOrFail($id);
 
-        $validated['slug'] = Str::slug($validated['name']);
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'subtitle' => 'nullable|string',
+                'country' => 'required|string|max:255',
+                'city' => 'required|string|max:255',
+                'content' => 'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
 
-        if ($request->hasFile('image')) {
-            if ($university->image) {
+            $validated['slug'] = Str::slug($validated['name']);
+
+            // Handle image upload
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                // Delete old image if exists
+                if ($university->image && Storage::disk('public')->exists($university->image)) {
+                    Storage::disk('public')->delete($university->image);
+                }
+
+                try {
+                    $imagePath = $request->file('image')->store('universities', 'public');
+                    $validated['image'] = $imagePath;
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload image: ' . $e->getMessage()
+                    ], 500);
+                }
+            } else {
+                unset($validated['image']);
+            }
+
+            // Handle logo upload
+            if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
+                // Delete old logo if exists
+                if ($university->logo && Storage::disk('public')->exists($university->logo)) {
+                    Storage::disk('public')->delete($university->logo);
+                }
+
+                try {
+                    $logoPath = $request->file('logo')->store('universities/logos', 'public');
+                    $validated['logo'] = $logoPath;
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload logo: ' . $e->getMessage()
+                    ], 500);
+                }
+            } else {
+                unset($validated['logo']);
+            }
+
+            $university->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'University updated successfully',
+                'university' => $university
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . json_encode($e->errors())
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('University update error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating university: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $university = University::findOrFail($id);
+
+            // Delete image if exists
+            if ($university->image && Storage::disk('public')->exists($university->image)) {
                 Storage::disk('public')->delete($university->image);
             }
-            $validated['image'] = $request->file('image')->store('universities', 'public');
-        }
 
-        if ($request->hasFile('logo')) {
-            if ($university->logo) {
+            // Delete logo if exists
+            if ($university->logo && Storage::disk('public')->exists($university->logo)) {
                 Storage::disk('public')->delete($university->logo);
             }
-            $validated['logo'] = $request->file('logo')->store('universities/logos', 'public');
+
+            $university->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'University deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('University delete error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting university: ' . $e->getMessage()
+            ], 500);
         }
-
-        $university->update($validated);
-
-        return redirect()->route('admin.universities.index')->with('success', 'University updated successfully');
     }
 
-    public function destroy(University $university)
+    public function admissions($id)
     {
-        if ($university->image) {
-            Storage::disk('public')->delete($university->image);
-        }
-        if ($university->logo) {
-            Storage::disk('public')->delete($university->logo);
-        }
-        $university->delete();
+        try {
+            $university = University::with('admissions')->findOrFail($id);
 
-        return redirect()->route('admin.universities.index')->with('success', 'University deleted successfully');
+            return response()->json([
+                'success' => true,
+                'admissions' => $university->admissions
+            ]);
+        } catch (\Exception $e) {
+            Log::error('University admissions error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading admissions'
+            ], 404);
+        }
     }
 }

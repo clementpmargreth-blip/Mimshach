@@ -7,7 +7,6 @@ use App\Models\Event;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class EventController extends Controller
@@ -71,7 +70,7 @@ class EventController extends Controller
             $query->whereDate('date', $request->specific_date);
         }
 
-        $events = $query->orderBy('id', 'desc')->paginate();
+        $events = $query->orderBy('id', 'desc')->paginate(6);
 
         return view('admin.events.index', compact('events', 'filters'));
     }
@@ -79,25 +78,48 @@ class EventController extends Controller
     public function store(Request $request)
     {
         try {
-            Log::info('Store method called', $request->all());
-
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'subtitle' => 'nullable|string',
                 'description' => 'required|string',
                 'date' => 'required|date',
                 'start_time' => 'required|date_format:H:i',
-                'end_time' => 'required|date_format:H:i|after:start_time',
+                'end_time' => 'required|date_format:H:i',
                 'location' => 'required|string',
                 'timezone' => 'required|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
 
-            $validated['slug'] = Str::slug($validated['title']);
+            $timezone = $request->timezone;
 
-            if ($request->hasFile('image')) {
-                $validated['image'] = $request->file('image')->store('events', 'public');
+            $startDateTime = Carbon::parse($request->date . ' ' . $request->start_time, $timezone)->utc();
+
+            $endDateTime = Carbon::parse($request->date . ' ' . $request->end_time, $timezone)->utc();
+
+            if ($endDateTime->lte($startDateTime)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'End time must be after start time'
+                ], 422);
             }
+
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                try {
+                    $imagePath = $request->file('image')->store('events', 'public');
+                    $validated['image'] = $imagePath;
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload image: ' . $e->getMessage()
+                    ], 500);
+                }
+            } else {
+                // Remove image from validated data if no file was uploaded
+                unset($validated['image']);
+            }
+
+            $validated['start_time'] = $startDateTime;
+            $validated['end_time'] = $endDateTime;
 
             $event = Event::create($validated);
 
@@ -106,8 +128,12 @@ class EventController extends Controller
                 'message' => 'Event created successfully',
                 'event' => $event
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . json_encode($e->errors())
+            ], 422);
         } catch (\Exception $e) {
-            Log::error('Store error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error creating event: ' . $e->getMessage()
@@ -123,12 +149,12 @@ class EventController extends Controller
             // Format dates for form inputs
             $eventData = $event->toArray();
             $eventData['formatted_date'] = Carbon::parse($event->date)->format('Y-m-d');
-            $eventData['formatted_start_time'] = Carbon::parse($event->start_time)->format('H:i');
-            $eventData['formatted_end_time'] = Carbon::parse($event->end_time)->format('H:i');
+            $eventData['formatted_start_time'] = $event->formatted_start_time;
+            $eventData['formatted_end_time'] = $event->formatted_end_time;
 
             return response()->json([
                 'success' => true,
-                'event' => $event
+                'event' => $eventData
             ]);
         } catch (\Exception $e) {
             Log::error('Edit error: ' . $e->getMessage());
@@ -150,19 +176,36 @@ class EventController extends Controller
                 'description' => 'required|string',
                 'date' => 'required|date',
                 'start_time' => 'required|date_format:H:i',
-                'end_time' => 'required|date_format:H:i|after:start_time',
+                'end_time' => 'required|date_format:H:i',
                 'location' => 'required|string',
                 'timezone' => 'required|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
 
-            $validated['slug'] = Str::slug($validated['title']);
+            $timezone = $request->timezone;
 
-            if ($request->hasFile('image')) {
-                if ($event->image) {
+            $validated['start_time'] = Carbon::parse(
+                $request->date . ' ' . $request->start_time,
+                $timezone
+            )->utc();
+
+            $validated['end_time'] = Carbon::parse(
+                $request->date . ' ' . $request->end_time,
+                $timezone
+            )->utc();
+
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                // Delete old image if exists
+                if ($event->image && Storage::disk('public')->exists($event->image)) {
                     Storage::disk('public')->delete($event->image);
                 }
-                $validated['image'] = $request->file('image')->store('events', 'public');
+
+                // Store new image
+                $imagePath = $request->file('image')->store('events', 'public');
+                $validated['image'] = $imagePath;
+            } else {
+                // Keep existing image, remove it from validated data
+                unset($validated['image']);
             }
 
             $event->update($validated);

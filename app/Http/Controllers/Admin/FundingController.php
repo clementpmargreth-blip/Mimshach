@@ -7,43 +7,32 @@ use App\Models\Funding;
 use App\Models\University;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class FundingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        // Get universities for filter
-        $universities = University::orderBy('name')->get();
-        $universityOptions = ['All Universities', ...$universities->pluck('name')->toArray()];
-
-        // Get unique education levels
+        // Get unique values for filters
         $educationLevels = ['All Levels', ...Funding::distinct()->pluck('education_level')->filter()->sort()->values()->toArray()];
-        
-        $fundingNames = ['All Fundings', ...Funding::distinct()->pluck('name')->filter()->sort()->values()->toArray()];
+        $universities = University::orderBy('name', 'asc')->get();
 
+        // Build filters array
         $filters = [
+            [
+                'type' => 'search',
+                'name' => 'search',
+                'placeholder' => 'Search funding...',
+            ],
             [
                 'type' => 'select',
                 'name' => 'education_level',
+                'label' => 'Education Level',
                 'options' => $educationLevels,
-            ],
-            [
-                'type' => 'select',
-                'name' => 'funding_name',
-                'options' => $fundingNames,
-            ],
-            [
-                'type' => 'select',
-                'name' => 'university',
-                'options' => $universityOptions,
             ],
         ];
 
-        // Get filtered funding opportunities
         $query = Funding::with('university');
 
         if ($request->filled('search')) {
@@ -57,111 +46,161 @@ class FundingController extends Controller
         if ($request->filled('education_level') && $request->education_level !== 'All Levels') {
             $query->where('education_level', $request->education_level);
         }
-        if ($request->filled('funding_name') && $request->funding_name !== 'All Fundings') {
-            $query->where('name', $request->funding_name);
-        }
 
-        if ($request->filled('university') && $request->university !== 'All Universities') {
-            $query->whereHas('university', function ($q) use ($request) {
-                $q->where('name', $request->university);
-            });
-        }
-
-        $fundings = $query->orderBy('created_at', 'desc')->paginate(6);
+        $fundings = $query->orderBy('id', 'desc')->paginate(6);
 
         return view('admin.funding.index', compact('fundings', 'filters', 'universities'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $universities = University::orderBy('name')->get();
-        return view('admin.funding.create', compact('universities'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'education_level' => 'required|string|in:Undergraduate,Graduate,PhD,Diploma',
-            'university_id' => 'required|exists:universities,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'required|string',
+                'university_id' => 'required|exists:universities,id',
+                'education_level' => 'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
 
-        $validated['slug'] = Str::slug($validated['name']);
+            $validated['slug'] = Str::slug($validated['name']);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('funding', 'public');
+            // Handle image upload
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                try {
+                    $imagePath = $request->file('image')->store('fundings', 'public');
+                    $validated['image'] = $imagePath;
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload image: ' . $e->getMessage()
+                    ], 500);
+                }
+            } else {
+                unset($validated['image']);
+            }
+
+            $funding = Funding::create($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Funding opportunity created successfully',
+                'funding' => $funding
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . json_encode($e->errors())
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Funding store error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating funding opportunity: ' . $e->getMessage()
+            ], 500);
         }
-
-        Funding::create($validated);
-
-        return redirect()->route('admin.funding.index')->with('success', 'Funding opportunity created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Funding $funding)
+    public function edit($id)
     {
-        return view('admin.funding.show', compact('funding'));
+        try {
+            $funding = Funding::findOrFail($id);
+
+            // Add full URL for image
+            $fundingData = $funding->toArray();
+            $fundingData['image_url'] = $funding->image ? Storage::url($funding->image) : null;
+
+            return response()->json([
+                'success' => true,
+                'funding' => $fundingData
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Funding edit error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Funding opportunity not found'
+            ], 404);
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Funding $funding)
+    public function update(Request $request, $id)
     {
-        $universities = University::orderBy('name')->get();
-        return response()->json([
-            'funding' => $funding,
-            'universities' => $universities
-        ]);
+        try {
+            $funding = Funding::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'required|string',
+                'university_id' => 'required|exists:universities,id',
+                'education_level' => 'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
+
+            $validated['slug'] = Str::slug($validated['name']);
+
+            // Handle image upload
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                // Delete old image if exists
+                if ($funding->image && Storage::disk('public')->exists($funding->image)) {
+                    Storage::disk('public')->delete($funding->image);
+                }
+
+                try {
+                    $imagePath = $request->file('image')->store('fundings', 'public');
+                    $validated['image'] = $imagePath;
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload image: ' . $e->getMessage()
+                    ], 500);
+                }
+            } else {
+                unset($validated['image']);
+            }
+
+            $funding->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Funding opportunity updated successfully',
+                'funding' => $funding
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . json_encode($e->errors())
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Funding update error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating funding opportunity: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Funding $funding)
+    public function destroy($id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'education_level' => 'required|string|in:Undergraduate,Graduate,PhD,Diploma',
-            'university_id' => 'required|exists:universities,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        try {
+            $funding = Funding::findOrFail($id);
 
-        $validated['slug'] = Str::slug($validated['name']);
-
-        if ($request->hasFile('image')) {
-            if ($funding->image) {
+            // Delete image if exists
+            if ($funding->image && Storage::disk('public')->exists($funding->image)) {
                 Storage::disk('public')->delete($funding->image);
             }
-            $validated['image'] = $request->file('image')->store('funding', 'public');
+
+            $funding->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Funding opportunity deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Funding delete error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting funding opportunity: ' . $e->getMessage()
+            ], 500);
         }
-
-        $funding->update($validated);
-
-        return redirect()->route('admin.funding.index')->with('success', 'Funding opportunity updated successfully');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Funding $funding)
-    {
-        if ($funding->image) {
-            Storage::disk('public')->delete($funding->image);
-        }
-        $funding->delete();
-
-        return redirect()->route('admin.funding.index')->with('success', 'Funding opportunity deleted successfully');
     }
 }

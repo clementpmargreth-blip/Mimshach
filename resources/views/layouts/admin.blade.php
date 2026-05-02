@@ -354,15 +354,20 @@
         const toast = document.createElement('div');
 
         toast.className = `
-          flex items-center gap-3 rounded-xl px-4 py-3 text-sm shadow-lg backdrop-blur-xl border
-          transition-all duration-300 opacity-0 translate-y-[-10px]
-          ${type === 'success' 
-            ? 'bg-green-500/20 border-green-400/30 text-green-800' 
-            : 'bg-red-500/20 border-red-400/30 text-red-800 dark:text-red-200'}
+            flex items-center gap-3 rounded-xl px-4 py-3 text-sm shadow-lg backdrop-blur-xl border
+            transition-all duration-300 opacity-0 translate-y-[-10px] mb-3
+            ${type === 'success' 
+                ? 'bg-green-500/20 border-green-400/30 text-green-800 dark:text-green-200' 
+                : 'bg-red-500/20 border-red-400/30 text-red-800 dark:text-red-200'}
         `;
 
         toast.innerHTML = `
-          <span>${message}</span>
+            <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ${type === 'success' 
+                    ? '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>'
+                    : '<path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>'}
+            </svg>
+            <span>${message}</span>
         `;
 
         container.appendChild(toast);

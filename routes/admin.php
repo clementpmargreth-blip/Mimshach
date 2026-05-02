@@ -21,19 +21,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
   });
 
   // Protected Admin Routes
-  Route::middleware('auth')->group(function () {
+  Route::middleware('auth:admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resources([
       'events' => EventController::class,
       'universities' => UniversityController::class,
-      'admission' => AdmissionController::class,
-      'funding' => FundingController::class,
-      'blog' => BlogController::class,
+      'admissions' => AdmissionController::class,
+      'fundings' => FundingController::class,
+      'blogs' => BlogController::class,
     ]);
 
     Route::get('events/{event}/registrations', [EventController::class, 'registrations'])
       ->name('events.registrations');
+    Route::get('universities/{university}/admissions', [UniversityController::class, 'admissions'])
+      ->name('universities.admissions');
 
     // Consultations
     Route::get('/consultations', [ConsultationController::class, 'index'])->name('consultations.index');

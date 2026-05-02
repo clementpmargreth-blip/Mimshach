@@ -37,10 +37,10 @@
                 class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
                 Title</th>
               <th
-                class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
+                class="px-2 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-4 dark:text-gray-300">
                 Date</th>
               <th
-                class="hidden px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 md:table-cell dark:text-gray-300">
+                class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 md:table-cell dark:text-gray-300">
                 Location</th>
               <th
                 class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6 dark:text-gray-300">
@@ -220,9 +220,9 @@
   </div>
 
   <!-- Delete Confirmation Modal -->
-  <div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm"
-    id="deleteModal">
-    <div class="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-800">
+  <div class="fixed inset-0 z-50 hidden place-items-center bg-black/50 backdrop-blur-sm" id="deleteModal">
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-800">
       <div class="text-center">
         <div
           class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
@@ -245,6 +245,7 @@
           <button class="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
             type="submit">Delete</button>
         </form>
+      </div>
       </div>
     </div>
   </div>
@@ -279,41 +280,6 @@
   <x-slot:scripts>
     <script>
       let currentDeleteId = null;
-
-      // Toast notification helper
-      function showToast(type, message) {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-
-        const toast = document.createElement('div');
-        toast.className = `
-            flex items-center gap-3 rounded-xl px-4 py-3 text-sm shadow-lg backdrop-blur-xl border
-            transition-all duration-300 opacity-0 translate-y-[-10px] mb-3
-            ${type === 'success' 
-                ? 'bg-green-500/20 border-green-400/30 text-green-800 dark:text-green-200' 
-                : 'bg-red-500/20 border-red-400/30 text-red-800 dark:text-red-200'}
-        `;
-
-        toast.innerHTML = `
-            <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                ${type === 'success' 
-                    ? '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>'
-                    : '<path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>'}
-            </svg>
-            <span>${message}</span>
-        `;
-
-        container.appendChild(toast);
-
-        setTimeout(() => {
-          toast.classList.remove('opacity-0', 'translate-y-[-10px]');
-        }, 10);
-
-        setTimeout(() => {
-          toast.classList.add('opacity-0', 'translate-y-[-10px]');
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
-      }
 
       // Routes configuration
       const routes = {
@@ -359,14 +325,12 @@
       // EDIT EVENT
       // ==========================
       window.editEvent = async function(id) {
-        console.log('Editing event ID:', id);
-
         try {
           const response = await fetch(routes.edit(id), {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest'
+              'X-Requested-With': 'XMLHttpRequest',
             }
           });
 
@@ -385,19 +349,19 @@
 
           document.getElementById('modalTitle').textContent = 'Edit Event';
           document.getElementById('method').value = 'PUT';
-          form.action = routes.update(event.id);
+          form.action = `/admin/events/${event.id}`;
           document.getElementById('eventId').value = event.id;
 
           // Populate fields
           document.getElementById('title').value = event.title || '';
           document.getElementById('subtitle').value = event.subtitle || '';
           document.getElementById('description').value = event.description || '';
-          document.getElementById('date').value = event.date || '';
+          document.getElementById('date').value = event.formatted_date || '';
           document.getElementById('start_time').value = event.formatted_start_time || '';
           document.getElementById('end_time').value = event.formatted_end_time || '';
           document.getElementById('location').value = event.location || '';
 
-          // Set timezone - check if it exists in dropdown, if not add it
+          // Set timezone
           const timezoneSelect = document.getElementById('timezone');
           let timezoneFound = false;
           for (let i = 0; i < timezoneSelect.options.length; i++) {
@@ -408,7 +372,6 @@
             }
           }
 
-          // If timezone not found, add it as an option
           if (!timezoneFound && event.timezone) {
             const newOption = document.createElement('option');
             newOption.value = event.timezone;
@@ -417,9 +380,15 @@
             timezoneSelect.appendChild(newOption);
           }
 
-          // Image preview
-          if (event.image) {
-            document.getElementById('currentImagePreview').src = `/storage/${event.image}`;
+          // Image preview - use image_url from the response
+          if (event.image_url) {
+            document.getElementById('currentImagePreview').src = event.image_url;
+            document.getElementById('currentImage').classList.remove('hidden');
+          } else if (event.image) {
+            // Fallback for older data
+            const imageUrl = event.image.startsWith('http') ? event.image :
+              `/storage/${event.image}`;
+            document.getElementById('currentImagePreview').src = imageUrl;
             document.getElementById('currentImage').classList.remove('hidden');
           } else {
             document.getElementById('currentImage').classList.add('hidden');
@@ -449,6 +418,7 @@
       // VIEW REGISTRATIONS
       // ==========================
       window.viewRegistrations = async function(eventId) {
+        console.log('View Registrations called for event ID:', eventId);
         const modal = document.getElementById('registrationsModal');
         const content = document.getElementById('registrationsContent');
 
@@ -557,25 +527,42 @@
             url = routes.update(isEdit);
             formData.append('_method', 'PUT');
           }
+
+          // Debug logging
+          console.log('Submitting to URL:', url);
+          console.log('Is Edit:', !!isEdit);
+
+          for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+          }
           const response = await fetch(url, {
             method: 'POST',
             body: formData,
             headers: {
-              'X-Requested-With': 'XMLHttpRequest'
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
             }
           });
 
-          const data = await response.json();
+          const text = await response.text();
+          console.log(text);
 
-          if (data.success) {
-            closeEventModal();
-            showToast('success', data.message);
-            setTimeout(() => location.reload(), 1500);
-          } else {
-            showToast('error', data.message || 'An error occurred');
-            submitButton.innerHTML = originalText;
-            submitButton.disabled = false;
+          try {
+            const data = JSON.parse(text);
+
+            if (data.success) {
+              closeEventModal();
+              showToast('success', data.message);
+              setTimeout(() => location.reload(), 1500);
+            } else {
+              showToast('error', data.message || 'An error occurred');
+            }
+
+          } catch (e) {
+            console.error('Non-JSON response:', text);
+            showToast('error', 'Server returned an invalid response');
           }
+
         } catch (error) {
           console.error('Submit error:', error);
           showToast('error', 'An error occurred while saving the event');
@@ -643,38 +630,4 @@
       });
     </script>
   </x-slot:scripts>
-  <script>
-    // Debug: Monitor all button clicks
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM fully loaded');
-
-      // Test if buttons are present
-      const createBtn = document.querySelector('[onclick="openEventModal()"]');
-      const editBtns = document.querySelectorAll('[onclick^="editEvent"]');
-      const deleteBtns = document.querySelectorAll('[onclick^="deleteEvent"]');
-
-      console.log('Create button found:', !!createBtn);
-      console.log('Edit buttons found:', editBtns.length);
-      console.log('Delete buttons found:', deleteBtns.length);
-
-      // Add click listeners for debugging
-      if (createBtn) {
-        createBtn.addEventListener('click', function() {
-          console.log('Create button clicked');
-        });
-      }
-
-      editBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-          console.log('Edit button clicked', this.getAttribute('onclick'));
-        });
-      });
-
-      deleteBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-          console.log('Delete button clicked', this.getAttribute('onclick'));
-        });
-      });
-    });
-  </script>
 </x-admin-layout>
